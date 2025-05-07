@@ -85,17 +85,17 @@ export async function createFeedback(params: CreateFeedbackParams) {
         });
 
         const feedback = await db
-            .collection("feedbaack")
+            .collection("feedback")
             .where("interviewId", "==", interviewId)
             .where("userId", "==", userId)
             .get();
         if (!feedback.empty) {
             feedback.forEach(async (doc) => {
-                await db.collection("feedbaack").doc(doc.id).delete();
+                await db.collection("feedback").doc(doc.id).delete();
             });
         }
 
-        const newfeedback = await db.collection("feedbaack").add({
+        const newfeedback = await db.collection("feedback").add({
             interviewId,
             userId,
             totalScore,
