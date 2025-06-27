@@ -124,7 +124,7 @@ export async function getFeedbackByInterviewId(
     const { userId, interviewId } = params;
 
     const feedback = await db
-        .collection("feedbaack")
+        .collection("feedback")
         .where("userId", "==", userId)
         .where("interviewId", "==", interviewId)
         .get();

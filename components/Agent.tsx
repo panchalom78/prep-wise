@@ -7,6 +7,7 @@ import { vapi } from "@/lib/vapi.sdk";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 enum CallStatus {
     INACTIVE = "INACTIVE",
@@ -32,10 +33,12 @@ const Agent = ({
         CallStatus.INACTIVE
     );
     const [messages, setMessages] = useState<SavedMessage[]>([]);
+    const [loading, setLoading] = useState(false);
 
     const router = useRouter();
 
     const handleGenerateFeedback = async (messages: SavedMessage[]) => {
+        setLoading(true);
         console.log("Genearte Feedback here");
         const { success, feedbackId: id } = await createFeedback({
             interviewId: interviewId!,
@@ -43,10 +46,13 @@ const Agent = ({
             transcript: messages,
         });
 
+        setLoading(false);
         if (success && id) {
+            toast.success("Feedback generated Successfully");
             router.push(`/interview/${interviewId}/feedback`);
         } else {
             console.log("Error saving feedback");
+            toast.error("Failed to save Feedback.Please try again later.");
             router.push("/");
         }
     };
@@ -104,12 +110,19 @@ const Agent = ({
     const handleCall = async () => {
         setCallStatus(CallStatus.CONNECTING);
         if (type === "generate") {
-            await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-                variableValues: {
-                    username: userName,
-                    userid: userId,
-                },
-            });
+            console.log(userName, userId);
+            await vapi.start(
+                undefined,
+                undefined,
+                undefined,
+                process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
+                {
+                    variableValues: {
+                        username: userName,
+                        userid: userId,
+                    },
+                }
+            );
         } else {
             let formattedQuestions = "";
             if (questions) {
@@ -140,7 +153,18 @@ const Agent = ({
 
     return (
         <>
-            <div className="call-view">
+            <div className="call-view relative">
+                {loading && (
+                    <div className="absolute w-full flex items-center justify-center h-full gap-2 bg-black/50">
+                        Genearting Feedback
+                        <div className="flex space-x-2 justify-center items-center bg-white h-screen dark:invert">
+                            <span className="sr-only">Loading...</span>
+                            <div className="h-3 w-3 bg-black rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                            <div className="h-3 w-3 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                            <div className="h-3 w-3 bg-black rounded-full animate-bounce"></div>
+                        </div>
+                    </div>
+                )}
                 <div className="card-interviewer">
                     <div className="avatar">
                         <Image
